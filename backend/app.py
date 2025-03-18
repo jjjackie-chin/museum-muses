@@ -33,7 +33,7 @@ def json_search(query):
     matches_filtered_json = matches_filtered.to_json(orient='records')
     return matches_filtered_json
 
-@app.route("/")
+@app.route("/") #route to url
 def home():
     return render_template('base.html',title="sample html")
 
