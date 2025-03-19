@@ -1,27 +1,28 @@
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+def getDataset():
+  import pandas as pd
+  #import matplotlib.pyplot as plt
+  import numpy as np
 
-#import data
-mus_rev_dict = pd.read_json("/data/review_quote_USonly.json", typ='series')
-mus_cat_dict = pd.read_json("/data/museum_categories_USonly.json", typ='series')
-df = pd.read_csv("/data/tripadvisor_museum_USonly.csv")
+  #import data
+  mus_rev_dict = pd.read_json("/data/review_quote_USonly.json", typ='series')
+  mus_cat_dict = pd.read_json("/data/museum_categories_USonly.json", typ='series')
+  df = pd.read_csv("/data/tripadvisor_museum_USonly.csv")
 
-# resetting index
-mus_rev = mus_rev_dict.reset_index()
-mus_cat = mus_cat_dict.reset_index()
+  # resetting index
+  mus_rev = mus_rev_dict.reset_index()
+  mus_cat = mus_cat_dict.reset_index()
 
-# naming col
-mus_rev.columns = ['MuseumName', 'Reviews']
-mus_cat.columns = ['MuseumName', 'Categories']
+  # naming col
+  mus_rev.columns = ['MuseumName', 'Reviews']
+  mus_cat.columns = ['MuseumName', 'Categories']
 
-# join
-merged = pd.merge(mus_cat, mus_rev, on='MuseumName', how='inner')
+  # join
+  merged = pd.merge(mus_cat, mus_rev, on='MuseumName', how='inner')
+  return merged
 
-
-# explore data
-mus_rev_keys = mus_rev_dict.keys() #1007 museums, 10-15 review quotes for each
+  # # explore data
+  # mus_rev_keys = mus_rev_dict.keys() #1007 museums, 10-15 review quotes for each
 
 
 
@@ -32,7 +33,7 @@ mus_rev_keys = mus_rev_dict.keys() #1007 museums, 10-15 review quotes for each
 
 
 ## retrieving museums from a given category
-def getMuseums(user_input_cat, dataset):
+def getMuseums(user_input_cat):
   """
   Takes in  the category that the user pre selected and returns a list of all 
   museum names that are in that category
@@ -45,6 +46,7 @@ def getMuseums(user_input_cat, dataset):
     matching: list[str] list of museum names in that category
 
   """
+  dataset = getDataset()
   cat_exploded = dataset.explode('Categories')
   matching = cat_exploded[cat_exploded['Categories'] == user_input_cat]['MuseumName'].tolist()
 
