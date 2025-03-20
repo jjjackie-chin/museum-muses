@@ -14,7 +14,6 @@
                 <h1 id="google-0-2">0</h1>
             </div>
             <div class="input-box" onclick="sendFocus()">
-                <img src="{{ url_for('static', filename='images/mag.png') }}" />
                 <input placeholder="Search for a Keeping up with the Kardashians episode" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
@@ -38,12 +37,13 @@
         }
 
         function filterText(){
+            console.log("filtering")
             document.getElementById("answer-box").innerHTML = ""
             console.log(document.getElementById("filter-text-val").value)
-            fetch("/episodes?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+            fetch("/museums?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
             .then((response) => response.json())
             .then((data) => data.forEach(row => {
-                
+                console.log(data)
                 let tempDiv = document.createElement("div")
                 tempDiv.innerHTML = answerBoxTemplate(row.title,row.descr,row.imdb_rating)
                 document.getElementById("answer-box").appendChild(tempDiv)
