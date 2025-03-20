@@ -1,7 +1,7 @@
 import json
 import os
 from flask import Flask, render_template, request
-from flask_cors import CORS
+# from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
 from helpers.data_cleaning import getDataset, getMuseums
@@ -24,33 +24,33 @@ with open(json_file_path, 'r') as file:
     # reviews_df = pd.DataFrame(data['reviews'])
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 
 # Sample search using json with pandas
-def json_search(query):
-    matches = []
-    merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
-    matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
-    matches_filtered = matches[['title', 'descr', 'imdb_rating']]
-    matches_filtered_json = matches_filtered.to_json(orient='records')
-    return matches_filtered_json
+# def json_search(query):
+#     matches = []
+#     merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
+#     matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
+#     matches_filtered = matches[['title', 'descr', 'imdb_rating']]
+#     matches_filtered_json = matches_filtered.to_json(orient='records')
+#     return matches_filtered_json
 
 @app.route("/") #route to url
 def home():
     return render_template('base.html',title="sample html")
 
-@app.route("/museums", methods=['GET'])
+@app.route("/museums")
 def get_museums():
     print("museums")
     text = request.args.get("title")
-    return getMuseums(text)
+    return json.dumps(getMuseums(text))
 
 
 
-@app.route("/episodes")
-def episodes_search():
-    text = request.args.get("title")
-    return json_search(text)
+# @app.route("/episodes")
+# def episodes_search():
+#     text = request.args.get("title")
+#     return json_search(text)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5000)
