@@ -39,7 +39,7 @@ def json_search(query):
 def home():
     return render_template('base.html',title="sample html")
 
-@app.route("/museums", methods=['GET'])
+@app.route("/museums")
 def get_museums():
     print("museums")
     text = request.args.get("title")
