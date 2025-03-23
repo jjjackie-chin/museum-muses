@@ -1,10 +1,11 @@
 import json
 import os
 from flask import Flask, render_template, request
-# from flask_cors import CORS
+from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
 from helpers.data_cleaning import getDataset, getMuseums
+from helpers.sims import SimGetMuseums
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -24,7 +25,7 @@ with open(json_file_path, 'r') as file:
     # reviews_df = pd.DataFrame(data['reviews'])
 
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
 
 # Sample search using json with pandas
 # def json_search(query):
@@ -41,9 +42,8 @@ def home():
 
 @app.route("/museums")
 def get_museums():
-    print("museums")
     text = request.args.get("title")
-    return json.dumps(getMuseums(text))
+    return json.dumps(SimGetMuseums(text))
 
 
 

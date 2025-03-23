@@ -41,8 +41,8 @@
             .then((response) => response.json())
             .then((data) => data.forEach(row => {
                 let tempDiv = document.createElement("div")
-                console.log(row)
-                tempDiv.innerHTML = answerBoxTemplate(row)
+                console.log(row[0])
+                tempDiv.innerHTML = answerBoxTemplate(row[0])
                 document.getElementById("answer-box").appendChild(tempDiv)
                 
             }));

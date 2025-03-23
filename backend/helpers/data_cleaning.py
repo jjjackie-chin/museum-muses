@@ -5,8 +5,9 @@ def getDataset():
   import numpy as np
 
   #import data
-  mus_rev_dict = pd.read_json("./data/review_quote_USonly.json", typ='series')
-  mus_cat_dict = pd.read_json("./data/museum_categories_USonly.json", typ='series')
+  # backend\data\review_content_USonly.json
+  mus_rev_dict = pd.read_json("backend/data/review_quote_USonly.json", typ='series')
+  mus_cat_dict = pd.read_json("backend/data/museum_categories_USonly.json", typ='series')
   # df = pd.read_csv("./data/tripadvisor_museum_USonly.csv")
 
   # resetting index
