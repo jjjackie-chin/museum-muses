@@ -4,7 +4,7 @@ from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
-from helpers.data_cleaning import getDataset, getMuseums
+from helpers.data_cleaning import getDataset, filterCategory, filterLocation
 from helpers.sims import SimGetMuseums
 
 # ROOT_PATH for linking with all your files. 
@@ -42,15 +42,28 @@ def home():
 
 @app.route("/museums")
 def get_museums():
-    text = request.args.get("title")
-    return json.dumps(SimGetMuseums(text))
+    text = request.args.get("query")
+    categories = request.args.getlist("categories")
+    locations = request.args.getlist("locations")
+    filtered_museums = set(filterCategory(categories))
+    filtered_museums &= set(filterLocation(locations))
+    print(categories)
+    return json.dumps(SimGetMuseums(text, filtered_museums))
 
+@app.route("/locations")
+def locations():
+    state_city_map = {}
+    for _, row in all_museums_df.iterrows():
+        state = row['State']
+        city = row['City']
+        state_city_map.setdefault(state, set()).add(city)
 
+    # sort by alphabetical order
+    for state in state_city_map:
+        state_city_map[state] = sorted(state_city_map[state])
+    sorted_state_city_map = {state: state_city_map[state] for state in sorted(state_city_map)}
 
-# @app.route("/episodes")
-# def episodes_search():
-#     text = request.args.get("title")
-#     return json_search(text)
+    return json.dumps(sorted_state_city_map)
 
 if 'DB_NAME' not in os.environ:
     app.run(debug=True,host="0.0.0.0",port=5001)

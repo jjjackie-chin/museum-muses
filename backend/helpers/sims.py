@@ -28,7 +28,7 @@ def compute_idf(inv_idx, n_docs, min_df=10, max_df_ratio=0.95):
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-def SimGetMuseums(input_query):
+def SimGetMuseums(input_query, filtered_museums=None):
     """
     Takes in the query from the user and returns a list of all 
     museum names that are similar to the query using cosine similarity
@@ -37,7 +37,10 @@ def SimGetMuseums(input_query):
     matching: list[str] list of museum names sorted by similarity scores
     """
     dataset = getDataset()
-    museum_names = dataset['MuseumName'].tolist()
+    if not filtered_museums:
+        museum_names = dataset['MuseumName'].tolist()
+    else:
+        museum_names = filtered_museums
     tokenizer = TreebankWordTokenizer()
 
     query_tokens = tokenizer.tokenize(input_query.lower())

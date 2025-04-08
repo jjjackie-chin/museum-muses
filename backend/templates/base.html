@@ -13,8 +13,45 @@
                 <img id="logo-img" src="../static/images/museum-logo.svg" />
                 <h1>MuseumMuses</h1>
             </div>
+
+            <!-- filters container -->
+            <div class="filters-container">
+                <!-- category filter  -->
+                <div class="filter-box">
+                    <label>Select Categories:</label>
+                    <div class="scroll-box" id="category-checkboxes">
+                        <label><input type="checkbox" name="category" value="Art Museums"> Art Museums</label><br>
+                        <label><input type="checkbox" name="category" value="Children's Museums"> Children's
+                            Museums</label><br>
+                        <label><input type="checkbox" name="category" value="History Museums"> History
+                            Museums</label><br>
+                        <label><input type="checkbox" name="category" value="Historic Sites"> Historic Sites</label><br>
+                        <label><input type="checkbox" name="category" value="Military Museums"> Military
+                            Museums</label><br>
+                        <label><input type="checkbox" name="category" value="Natural History Museums"> Natural History
+                            Museums</label><br>
+                        <label><input type="checkbox" name="category" value="Nature & Parks"> Nature & Parks</label><br>
+                        <label><input type="checkbox" name="category" value="Science Museums"> Science
+                            Museums</label><br>
+                        <label><input type="checkbox" name="category" value="Sights & Landmarks"> Sights &
+                            Landmarks</label><br>
+                        <label><input type="checkbox" name="category" value="Specialty Museums"> Specialty
+                            Museums</label><br>
+                    </div>
+                </div>
+
+                <!-- state/city filter -->
+                <div class="filter-box">
+                    <label>Select Locations:</label>
+                    <div class="scroll-box" id="location-checkboxes">
+                        <!-- Checkboxes grouped by state will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- user query -->
             <div class="input-box" onclick="sendFocus()">
-                <input placeholder="Enter a museum category (e.g., Art)" id="filter-text-val" onkeyup="filterText()">
+                <input placeholder="Enter your query" id="filter-text-val" onkeyup="filterText()">
             </div>
         </div>
         <div id="answer-box">
@@ -35,11 +72,52 @@
             document.getElementById('filter-text-val').focus()
         }
 
+        // get all locations that appear in dataset
+        fetch("/locations")
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById("location-checkboxes");
+                for (const state in data) {
+                    const stateGroup = document.createElement("div");
+                    const stateLabel = document.createElement("strong");
+                    stateLabel.textContent = state;
+                    stateGroup.appendChild(stateLabel);
+
+                    data[state].forEach(city => {
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkbox.name = "location";
+                        checkbox.value = `${city}, ${state}`;
+
+                        const label = document.createElement("label");
+                        label.className = "city-checkbox";
+                        label.appendChild(checkbox);
+                        label.append(` ${city}`);
+
+                        stateGroup.appendChild(label);
+                    });
+
+                    container.append(stateGroup);
+                }
+            });
+
+        function getSelectedValues(name) {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        };
         function filterText() {
-            console.log("filtering")
             document.getElementById("answer-box").innerHTML = ""
-            console.log(document.getElementById("filter-text-val").value)
-            fetch("/museums?" + new URLSearchParams({ title: document.getElementById("filter-text-val").value }).toString())
+
+            const query = document.getElementById("filter-text-val").value;
+            const categories = getSelectedValues("category");
+            const locations = getSelectedValues("location");
+
+            const params = new URLSearchParams();
+            params.append("query", query);
+            categories.forEach(cat => params.append("categories", cat));
+            locations.forEach(loc => params.append("locations", loc));
+
+            fetch("/museums?" + params.toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
@@ -50,6 +128,8 @@
                 }));
 
         }
+
+
 
     </script>
 </body>

@@ -78,3 +78,30 @@
     margin-right: 3px;
     margin-left: 3px;
 }
+
+.filters-container {
+    display: flex
+}
+.filter-box {
+    margin-inline: 20px;
+}
+.filter-box label{
+    margin-bottom: 20px;
+    max-width: 300px;
+    color: #FFFF
+}
+.scroll-box {
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #f9f9f9;
+}
+.scroll-box label {
+    color: black;
+    margin-bottom: 5px;
+}
+.city-checkbox {
+    margin-left: 15px;
+    display: block;
+}
