@@ -62,7 +62,12 @@ def SimGetMuseums(input_query, filtered_museums=None):
     
     similarities = cosine_similarity(query_vector, review_vectors)[0]
     
-    matching = list(zip(museum_names, similarities))
+    # Get (name, address, similarity) tuples
+    matching = []
+    for name, sim in zip(museum_names, similarities):
+        address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
+        matching.append((name, address, sim))
     
-    matching.sort(reverse=True, key=lambda x: x[1])
+    # Sort by similarity
+    matching.sort(reverse=True, key=lambda x: x[2])
     return matching
