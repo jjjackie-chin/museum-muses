@@ -20,7 +20,7 @@ def get_city_state(df):
   return df
   
 def getDataset():
-  mus_rev_dict = pd.read_json("./data/review_quote_USonly.json", typ='series')
+  mus_rev_dict = pd.read_json("./data/review_content_USonly.json", typ='series')
   mus_cat_dict = pd.read_json("./data/museum_categories_USonly.json", typ='series')
 
   # resetting index
