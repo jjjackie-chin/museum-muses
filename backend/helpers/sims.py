@@ -170,6 +170,8 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     print(matching[0:10])
     return matching
 
+
+# For testing purposes
 from data_cleaning import getDataset, filterCategory, filterLocation
 
 query = "Children"
