@@ -20,23 +20,29 @@ def get_city_state(df):
   return df
   
 def getDataset():
-  mus_rev_dict = pd.read_json("./data/review_content_USonly.json", typ='series')
-  mus_cat_dict = pd.read_json("./data/museum_categories_USonly.json", typ='series')
+  mus_rev_dict = pd.read_json("backend/data/review_content_USonly.json", typ='series')
+  mus_cat_dict = pd.read_json("backend/data/museum_categories_USonly.json", typ='series')
+  mus_quote_dict = pd.read_json("backend/data/review_quote_USonly.json", typ='series')
 
   # resetting index
   mus_rev = mus_rev_dict.reset_index()
   mus_cat = mus_cat_dict.reset_index()
+  mus_quote = mus_quote_dict.reset_index()
 
   # naming col
   mus_rev.columns = ['MuseumName', 'Reviews']
   mus_cat.columns = ['MuseumName', 'Categories']
+  mus_quote.columns = ['MuseumName', 'Content']
 
   # join
   merged = pd.merge(mus_cat, mus_rev, on='MuseumName', how='inner')
-  
+  print(merged.shape)
+
+  merged = pd.merge(merged, mus_quote, on='MuseumName', how='left')
+  print(merged.shape)
 
   # add info from trip advisor (location, description, fee, rating (0-5))
-  trip_advisor = pd.read_csv("./data/tripadvisor_museum_USonly.csv")
+  trip_advisor = pd.read_csv("backend/data/tripadvisor_museum_USonly.csv")
   trip_advisor = trip_advisor[['MuseumName', 'Address', 'Description', 'Fee', 'Rating']]
   trip_advisor = get_city_state(trip_advisor)
 
@@ -64,8 +70,14 @@ def filterCategory(user_input_cat):
   if len(user_input_cat)==0:
     return dataset['MuseumName'].tolist()
   cat_exploded = dataset.explode('Categories')
-  matching = cat_exploded[cat_exploded['Categories'].isin(user_input_cat)]
-  matching = matching['MuseumName'].tolist()
+  filter_mask = pd.Series([False] * len(dataset))
+  
+  for cat in cat_exploded:
+      location_mask = dataset['City-State'].str.contains(cat, case=False, na=False)
+      filter_mask = filter_mask | location_mask
+
+  matching = dataset[filter_mask]['MuseumName'].tolist()
+  # print("Filtering by category...")
   return matching
 
 
@@ -85,11 +97,17 @@ def filterLocation(locations):
 
   """
   dataset = getDataset()
-  
+    
   if len(locations) == 0:
-    return dataset['MuseumName'].tolist()
-
-  city_state = dataset['City-State']
-  filter = city_state.isin(locations)
-  matching = dataset[filter]['MuseumName'].tolist()
+      return dataset['MuseumName'].tolist()
+  
+  filter_mask = pd.Series([False] * len(dataset))
+  
+  for location in locations:
+      location_mask = dataset['City-State'].str.contains(location, case=False, na=False)
+      filter_mask = filter_mask | location_mask
+  
+  matching = dataset[filter_mask]['MuseumName'].tolist()
+  print("Filtering by location...")
+  # print(matching)
   return matching
