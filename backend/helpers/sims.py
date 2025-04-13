@@ -1,12 +1,9 @@
-
 import math
-from data_cleaning import getDataset
+from helpers.data_cleaning import getDataset
 from nltk.tokenize import TreebankWordTokenizer
 from collections import Counter
 from scipy.sparse.linalg import svds
-import matplotlib
 import numpy as np
-import matplotlib.pyplot as plt
 
 def inv_idx(msgs):
     inverted_index = {}
@@ -172,11 +169,11 @@ def SVDTopMuseums(input_query, filtered_museums=None):
 
 
 # For testing purposes
-from data_cleaning import getDataset, filterCategory, filterLocation
+# from data_cleaning import getDataset, filterCategory, filterLocation
 
-query = "Children"
-categories = ["Art Museums", "History Museums"]
-locations = ['NY']
-filtered_museums = set(filterCategory(categories))
-filtered_museums &= set(filterLocation(locations))
-SVDTopMuseums(query, filtered_museums=filtered_museums)
+# query = "Children"
+# categories = ["Art Museums", "History Museums"]
+# locations = ['NY']
+# filtered_museums = set(filterCategory(categories))
+# filtered_museums &= set(filterLocation(locations))
+# SVDTopMuseums(query, filtered_museums=filtered_museums)

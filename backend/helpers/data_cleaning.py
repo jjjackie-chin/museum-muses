@@ -20,9 +20,9 @@ def get_city_state(df):
   return df
   
 def getDataset():
-  mus_rev_dict = pd.read_json("backend/data/review_content_USonly.json", typ='series')
-  mus_cat_dict = pd.read_json("backend/data/museum_categories_USonly.json", typ='series')
-  mus_quote_dict = pd.read_json("backend/data/review_quote_USonly.json", typ='series')
+  mus_rev_dict = pd.read_json("./data/review_content_USonly.json", typ='series')
+  mus_cat_dict = pd.read_json("./data/museum_categories_USonly.json", typ='series')
+  mus_quote_dict = pd.read_json("./data/review_quote_USonly.json", typ='series')
 
   # resetting index
   mus_rev = mus_rev_dict.reset_index()
@@ -42,7 +42,7 @@ def getDataset():
   print(merged.shape)
 
   # add info from trip advisor (location, description, fee, rating (0-5))
-  trip_advisor = pd.read_csv("backend/data/tripadvisor_museum_USonly.csv")
+  trip_advisor = pd.read_csv("./data/tripadvisor_museum_USonly.csv")
   trip_advisor = trip_advisor[['MuseumName', 'Address', 'Description', 'Fee', 'Rating']]
   trip_advisor = get_city_state(trip_advisor)
 
