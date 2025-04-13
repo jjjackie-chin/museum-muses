@@ -51,8 +51,11 @@
 
             <!-- user query -->
             <div class="input-box" onclick="sendFocus()">
-                <input placeholder="Enter your query" id="filter-text-val" onkeyup="filterText()">
+                <input placeholder="Enter your query" id="filter-text-val" required>
+                <button id="search-button" onclick="filterText()">Search</button>
             </div>
+
+            
         </div>
         <div id="answer-box">
 
@@ -110,6 +113,10 @@
             document.getElementById("answer-box").innerHTML = ""
 
             const query = document.getElementById("filter-text-val").value;
+            if (query == "") {
+                document.getElementById("answer-box").innerHTML = "<p class='error'>Please enter a query in your search.</p>";
+                return;
+            }
             const categories = getSelectedValues("category");
             const locations = getSelectedValues("location");
 
@@ -130,7 +137,12 @@
 
         }
 
-
+        // event listener for 'Enter' key if pressed
+        document.getElementById("filter-text-val").addEventListener("keyup", function(e) {
+            if (e.key === "Enter") {
+                filterText();
+            }
+        });
 
     </script>
 </body>

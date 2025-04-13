@@ -14,14 +14,8 @@
     background-color: black;
 }
 
-.google-colors{
-    display: flex;
-    align-items: center;
-    font-size: 48px;
-    font-family: 'Open Sans', sans-serif;
-}
-
 .input-box{
+    display: flex;
     border-radius: 50px;
     border:1px solid white;
     background-color: #EDEDED;
@@ -61,6 +55,7 @@
 
 .episode-title{
     font-family: 'Kanit', sans-serif;
+    color:white;
 }
 
 .episode-desc{
@@ -105,4 +100,10 @@
 .city-checkbox {
     margin-left: 15px;
     display: block;
+}
+
+#search-button {
+    border-radius: 50px;
+    background-color: #EDEDED;
+    font-family: 'Open Sans', sans-serif;
 }
