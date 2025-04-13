@@ -68,13 +68,9 @@ def filterCategory(user_input_cat):
   if len(user_input_cat)==0:
     return dataset['MuseumName'].tolist()
   cat_exploded = dataset.explode('Categories')
-  filter_mask = pd.Series([False] * len(dataset))
   
-  for cat in cat_exploded:
-      location_mask = dataset['City-State'].str.contains(cat, case=False, na=False)
-      filter_mask = filter_mask | location_mask
-
-  matching = dataset[filter_mask]['MuseumName'].tolist()
+  matching = cat_exploded[cat_exploded['Categories'].isin(user_input_cat)]
+  matching = matching['MuseumName'].tolist()
   # print("Filtering by category...")
   return matching
 
@@ -99,11 +95,7 @@ def filterLocation(locations):
   if len(locations) == 0:
       return dataset['MuseumName'].tolist()
   
-  filter_mask = pd.Series([False] * len(dataset))
-  
-  for location in locations:
-      location_mask = dataset['City-State'].str.contains(location, case=False, na=False)
-      filter_mask = filter_mask | location_mask
-  
-  matching = dataset[filter_mask]['MuseumName'].tolist()
+  city_state = dataset['City-State']
+  filter = city_state.isin(locations)
+  matching = dataset[filter]['MuseumName'].tolist()
   return matching

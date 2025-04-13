@@ -41,9 +41,11 @@ def composeData(dataset, filtered_museums=None):
     for name in museum_names:
         review = dataset[dataset['MuseumName'] == name]['Reviews'].values[0]
         content = dataset[dataset['MuseumName'] == name]['Content'].values[0]
+        description = dataset[dataset['MuseumName'] == name]['Description'].values[0]
         review_str = " ".join(review)
         content_str = " ".join(content)
-        review_texts.append(review_str + " " + content_str) 
+        desc_str = description if isinstance(description, str) else ""
+        review_texts.append(review_str + " " + content_str + " " + desc_str) 
 
     return museum_names, review_texts
 
