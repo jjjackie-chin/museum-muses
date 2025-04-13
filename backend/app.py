@@ -5,7 +5,7 @@ from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
 from helpers.data_cleaning import getDataset, filterCategory, filterLocation
-from helpers.sims import SimGetMuseums
+from helpers.sims import SVDTopMuseums
 
 # ROOT_PATH for linking with all your files. 
 # Feel free to use a config.py or settings.py with a global export variable
@@ -27,15 +27,6 @@ with open(json_file_path, 'r') as file:
 app = Flask(__name__)
 CORS(app)
 
-# Sample search using json with pandas
-# def json_search(query):
-#     matches = []
-#     merged_df = pd.merge(episodes_df, reviews_df, left_on='id', right_on='id', how='inner')
-#     matches = merged_df[merged_df['title'].str.lower().str.contains(query.lower())]
-#     matches_filtered = matches[['title', 'descr', 'imdb_rating']]
-#     matches_filtered_json = matches_filtered.to_json(orient='records')
-#     return matches_filtered_json
-
 @app.route("/") #route to url
 def home():
     return render_template('base.html',title="sample html")
@@ -48,7 +39,7 @@ def get_museums():
     filtered_museums = set(filterCategory(categories))
     filtered_museums &= set(filterLocation(locations))
     print(categories)
-    return json.dumps(SimGetMuseums(text, filtered_museums))
+    return json.dumps(SVDTopMuseums(text, filtered_museums))
 
 @app.route("/locations")
 def locations():
