@@ -36,10 +36,8 @@ def getDataset():
 
   # join
   merged = pd.merge(mus_cat, mus_rev, on='MuseumName', how='inner')
-  print(merged.shape)
 
   merged = pd.merge(merged, mus_quote, on='MuseumName', how='left')
-  print(merged.shape)
 
   # add info from trip advisor (location, description, fee, rating (0-5))
   trip_advisor = pd.read_csv("./data/tripadvisor_museum_USonly.csv")
@@ -108,6 +106,4 @@ def filterLocation(locations):
       filter_mask = filter_mask | location_mask
   
   matching = dataset[filter_mask]['MuseumName'].tolist()
-  print("Filtering by location...")
-  # print(matching)
   return matching

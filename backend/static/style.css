@@ -1,5 +1,6 @@
 .full-body-container{
-    position: absolute;
+    position: relative;
+    min-height: 100vh;
     top:0;
     left:0;
     right:0;

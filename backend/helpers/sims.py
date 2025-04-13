@@ -164,7 +164,6 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             matching.append((name, "Address not found", float(sim)))
     
     matching.sort(key=lambda x: x[2], reverse=True)
-    print(matching[0:10])
     return matching
 
 
