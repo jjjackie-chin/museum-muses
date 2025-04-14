@@ -14,6 +14,11 @@
                 <h1>MuseumMuses</h1>
             </div>
 
+            <div class="notification">
+                <p>Please select at least one category, one location, and enter a search query to get recommendations.
+                </p>
+            </div>
+
             <!-- filters container -->
             <div class="filters-container">
                 <!-- category filter  -->
@@ -55,7 +60,7 @@
                 <button id="search-button" onclick="filterText()">Search</button>
             </div>
 
-            
+
         </div>
         <div id="answer-box">
 
@@ -113,12 +118,29 @@
             document.getElementById("answer-box").innerHTML = ""
 
             const query = document.getElementById("filter-text-val").value;
-            if (query == "") {
+            const categories = getSelectedValues("category");
+            const locations = getSelectedValues("location");
+
+            if (query.trim() === "") {
                 document.getElementById("answer-box").innerHTML = "<p class='error'>Please enter a query in your search.</p>";
                 return;
             }
-            const categories = getSelectedValues("category");
-            const locations = getSelectedValues("location");
+            if (categories.length === 0) {
+                document.getElementById("answer-box").innerHTML = "<p class='error'>Please select at least one category.</p>";
+                return;
+            }
+            if (locations.length === 0) {
+                document.getElementById("answer-box").innerHTML = "<p class='error'>Please select at least one location.</p>";
+                return;
+            }
+
+            // const query = document.getElementById("filter-text-val").value;
+            // if (query == "") {
+            //     document.getElementById("answer-box").innerHTML = "<p class='error'>Please enter a query in your search.</p>";
+            //     return;
+            // }
+            // const categories = getSelectedValues("category");
+            // const locations = getSelectedValues("location");
 
             const params = new URLSearchParams();
             params.append("query", query);
@@ -138,7 +160,7 @@
         }
 
         // event listener for 'Enter' key if pressed
-        document.getElementById("filter-text-val").addEventListener("keyup", function(e) {
+        document.getElementById("filter-text-val").addEventListener("keyup", function (e) {
             if (e.key === "Enter") {
                 filterText();
             }
