@@ -4,7 +4,7 @@ from flask import Flask, render_template, request
 from flask_cors import CORS
 from helpers.MySQLDatabaseHandler import MySQLDatabaseHandler
 import pandas as pd
-from helpers.data_cleaning import getDataset, filterCategory, filterLocation
+from helpers.data_cleaning import getDataset, filterCategory, filterLocation, filterState
 from helpers.sims import SVDTopMuseums
 
 # ROOT_PATH for linking with all your files. 
@@ -37,11 +37,12 @@ def get_museums():
     categories = request.args.getlist("categories")
     cities = request.args.getlist("cities")
     states = request.args.getlist("states")
-    filtered_museums = set(filterLocation(states))
+
+    filtered_museums = set(filterState(states))
     filtered_museums &= set(filterCategory(categories))
     filtered_museums &= set(filterLocation(cities))
-    # print(categories)
-    return json.dumps(SVDTopMuseums(text, filtered_museums))
+    print("filtered museums in app.py")
+    return json.dumps(SVDTopMuseums(text, list(filtered_museums)))
 
 @app.route("/locations")
 def locations():

@@ -70,15 +70,17 @@ def filterCategory(user_input_cat):
   if len(user_input_cat)==0:
     return dataset['MuseumName'].tolist()
   
-  cat_mask = pd.Series([False] * len(dataset))
+  # cat_mask = pd.Series([False] * len(dataset))
   
-  for cat in user_input_cat:
+  # for cat in user_input_cat:
     # print("cat: " + cat)
     # print(dataset['Categories'])
-    cat_mask = [cat in row for row in dataset['Categories']]
+    # cat_mask = [cat in row for row in dataset['Categories']]
     # print(cat_mask)
-
-  matching = dataset[cat_mask]['MuseumName'].tolist()
+  cat = dataset['Categories']
+  filter = cat.isin(user_input_cat)
+  matching = dataset[filter]['MuseumName'].tolist()
+  # matching = dataset[cat_mask]['MuseumName'].tolist()
   # print("Filtering by category...")
   return matching
 
@@ -89,16 +91,16 @@ def filterState(states):
   if len(states) == 0:
       return dataset['MuseumName'].tolist()
 
-  filter_mask = pd.Series([False] * len(dataset))
+  # filter_mask = pd.Series([False] * len(dataset))
   
-  for state in states:
-      location_mask = dataset['State'].str.contains(state, case=False, na=False)
-      filter_mask = filter_mask | location_mask
+  # for state in states:
+  #     location_mask = dataset['State'].str.contains(state, case=False, na=False)
+  #     filter_mask = filter_mask | location_mask
   
-  matching = dataset[filter_mask]['MuseumName'].tolist()
-  # print("filtering by state...")
-  # print(matching)
-  # print("---------------------")
+  # matching = dataset[filter_mask]['MuseumName'].tolist()
+  state = dataset['State']
+  filter = state.isin(states)
+  matching = dataset[filter]['MuseumName'].tolist()
   return matching
 
 
@@ -121,14 +123,17 @@ def filterLocation(locations):
     
   if len(locations) == 0:
       return dataset['MuseumName'].tolist()
+  city_state = dataset['City-State']
+  filter = city_state.isin(locations)
+  matching = dataset[filter]['MuseumName'].tolist()
   
-  filter_mask = pd.Series([False] * len(dataset))
+  # filter_mask = pd.Series([False] * len(dataset))
   
-  for location in locations:
-      location_mask = dataset['City-State'].str.contains(location, case=False, na=False)
-      filter_mask = filter_mask | location_mask
+  # for location in locations:
+  #     location_mask = dataset['City-State'].str.contains(location, case=False, na=False)
+  #     filter_mask = filter_mask | location_mask
   
-  matching = dataset[filter_mask]['MuseumName'].tolist()
+  # matching = dataset[filter_mask]['MuseumName'].tolist()
   # print("Filtering by location...")
   # print(matching)
   return matching

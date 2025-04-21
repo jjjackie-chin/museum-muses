@@ -100,13 +100,8 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     # print("Processed query:", query_text)
     
     museum_names, review_texts = composeData(dataset)
-    # print(f"Composed data: {len(museum_names)} museums, {len(review_texts)} review texts")
-    
-    if filtered_museums is not None:
-        indices = [i for i, name in enumerate(museum_names) if name in filtered_museums]
-        museum_names = [museum_names[i] for i in indices]
-        review_texts = [review_texts[i] for i in indices]
-    # print(filtered_museums)
+
+    print("museum_names  in sims.py")
     
     # Check if we have enough data
     if len(review_texts) == 0:
@@ -114,21 +109,16 @@ def SVDTopMuseums(input_query, filtered_museums=None):
         return []
     
     print(f"Processing {len(museum_names)} museums")
-    
-    # print(f"Sample review text (first 100 chars): {review_texts[0][:100]}...")
-    
+        
     # Add query to the texts for vectorization
-    all_texts = [query_text] + review_texts
+    svd_texts = [query_text] + review_texts
 
-    svd_texts = review_texts
-    print(f"Created all_texts with {len(all_texts)} items")
+    # svd_texts = review_texts
     
-    vectorizer = TfidfVectorizer(min_df=1)
-    td_matrix = vectorizer.fit_transform(all_texts)
-    # print("TF-IDF matrix shape:", td_matrix.shape)
-    # print("Vocabulary size:", len(vectorizer.vocabulary_))
-    
-    k = min(100, min(td_matrix.shape) - 1) 
+    vectorizer = TfidfVectorizer(min_df=1, max_df=0.9)
+    td_matrix = vectorizer.fit_transform(svd_texts)
+    # k = min(100, min(td_matrix.shape) - 1) 
+    k = 30
     if k <= 0:
         print("ERROR: k <= 0, cannot perform SVD")
         query_vector = td_matrix[0:1]
@@ -141,7 +131,12 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             from scipy.sparse.linalg import svds
             import numpy as np
             
-            u, s, vt = svds(td_matrix, k=k)            
+            u, s, vt = svds(td_matrix, k=k)  
+
+            # print(u.shape)
+            # print(s.shape)
+            # print(vt.shape)   
+
             s_diag = np.diag(s)
             docs_transformed = np.dot(u, s_diag)            
             query_vec = docs_transformed[0]
@@ -160,13 +155,17 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     
     matching = []
     for i, (name, sim) in enumerate(zip(museum_names, similarities)):
+        if name not in filtered_museums:
+            continue
         try:
             address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
             matching.append((name, address, float(sim)))
         except Exception as e:
             print(f"Error getting address for museum {name}: {e}")
             matching.append((name, "Address not found", float(sim)))
-    
+
+
+
     matching.sort(key=lambda x: x[2], reverse=True)
     return matching
 
