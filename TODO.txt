@@ -1,0 +1,4 @@
+- add interpretability aspect to the SVD (dimensions)
+- filter out cossim scores
+- display cossim scores with tags (allow users to verify whether the results are correct) 
+- FIX SVD (why is the dim so small?)

@@ -35,10 +35,12 @@ def home():
 def get_museums():
     text = request.args.get("query")
     categories = request.args.getlist("categories")
-    locations = request.args.getlist("locations")
-    filtered_museums = set(filterCategory(categories))
-    filtered_museums &= set(filterLocation(locations))
-    print(categories)
+    cities = request.args.getlist("cities")
+    states = request.args.getlist("states")
+    filtered_museums = set(filterLocation(states))
+    filtered_museums &= set(filterCategory(categories))
+    filtered_museums &= set(filterLocation(cities))
+    # print(categories)
     return json.dumps(SVDTopMuseums(text, filtered_museums))
 
 @app.route("/locations")

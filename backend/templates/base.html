@@ -81,58 +81,92 @@
             document.getElementById('filter-text-val').focus()
         }
 
-        // get all locations that appear in dataset
         fetch("/locations")
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById("location-checkboxes");
-                for (const state in data) {
-                    const stateGroup = document.createElement("div");
-                    const stateLabel = document.createElement("strong");
-                    stateLabel.textContent = state;
-                    stateGroup.appendChild(stateLabel);
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById("location-checkboxes");
 
-                    data[state].forEach(city => {
-                        const checkbox = document.createElement("input");
-                        checkbox.type = "checkbox";
-                        checkbox.name = "location";
-                        checkbox.value = `${city}, ${state}`;
+        for (const state in data) {
+            const stateGroup = document.createElement("div");
+            stateGroup.className = "state-group";
 
-                        const label = document.createElement("label");
-                        label.className = "city-checkbox";
-                        label.appendChild(checkbox);
-                        label.append(` ${city}`);
+            const stateCheckbox = document.createElement("input");
+            stateCheckbox.type = "checkbox";
+            stateCheckbox.name = "state";
+            stateCheckbox.value = state;
+            stateCheckbox.className = "state-checkbox";
+            stateCheckbox.id = `checkbox-${state}`; // unique id
 
-                        stateGroup.appendChild(label);
-                    });
+            const stateLabel = document.createElement("label");
+            stateLabel.htmlFor = stateCheckbox.id;
+            stateLabel.textContent = state;
+            stateLabel.className = "state-label";
 
-                    container.append(stateGroup);
-                }
+            const citiesContainer = document.createElement("div");
+            citiesContainer.className = "cities-container";
+            citiesContainer.style.display = "none";
+
+            // Create city checkboxes
+            data[state].forEach(city => {
+                const cityWrapper = document.createElement("div");
+                cityWrapper.className = "city-wrapper";
+
+                const cityCheckbox = document.createElement("input");
+                cityCheckbox.type = "checkbox";
+                cityCheckbox.name = "location";
+                cityCheckbox.value = `${city}, ${state}`;
+                cityCheckbox.id = `checkbox-${state}-${city}`;
+
+                const cityLabel = document.createElement("label");
+                cityLabel.htmlFor = cityCheckbox.id;
+                cityLabel.textContent = city;
+                cityLabel.className = "city-label";
+
+                cityWrapper.appendChild(cityCheckbox);
+                cityWrapper.appendChild(cityLabel);
+                citiesContainer.appendChild(cityWrapper);
             });
+
+            // Toggle display of cities when state checkbox changes
+            stateCheckbox.addEventListener("change", () => {
+                citiesContainer.style.display = stateCheckbox.checked ? "block" : "none";
+            });
+
+            stateGroup.appendChild(stateCheckbox);
+            stateGroup.appendChild(stateLabel);
+            stateGroup.appendChild(citiesContainer);
+            container.appendChild(stateGroup);
+        }
+    });
 
         function getSelectedValues(name) {
             const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
             return Array.from(checkboxes).map(cb => cb.value);
-        };
+        }
+
         function filterText() {
-            document.getElementById("answer-box").innerHTML = ""
+            const answerBox = document.getElementById("answer-box");
+            answerBox.innerHTML = "";
 
-            const query = document.getElementById("filter-text-val").value;
+            const query = document.getElementById("filter-text-val").value.trim();
             const categories = getSelectedValues("category");
-            const locations = getSelectedValues("location");
+            // console.log(categories)
+            const states = getSelectedValues("state");
+            const cities = getSelectedValues("location");
+            // console.log(states)
 
-            if (query.trim() === "") {
-                document.getElementById("answer-box").innerHTML = "<p class='error'>Please enter a query in your search.</p>";
-                return;
-            }
-            if (categories.length === 0) {
-                document.getElementById("answer-box").innerHTML = "<p class='error'>Please select at least one category.</p>";
-                return;
-            }
-            if (locations.length === 0) {
-                document.getElementById("answer-box").innerHTML = "<p class='error'>Please select at least one location.</p>";
-                return;
-            }
+            // if (query === "") {
+            //     answerBox.innerHTML = "<p class='error'>Please enter a query in your search.</p>";
+            //     return;
+            // }
+            // if (categories.length === 0) {
+            //     answerBox.innerHTML = "<p class='error'>Please select at least one category.</p>";
+            //     return;
+            // }
+            // if (locations.length === 0) {
+            //     answerBox.innerHTML = "<p class='error'>Please select at least one location.</p>";
+            //     return;
+            // }
 
             // const query = document.getElementById("filter-text-val").value;
             // if (query == "") {
@@ -145,13 +179,14 @@
             const params = new URLSearchParams();
             params.append("query", query);
             categories.forEach(cat => params.append("categories", cat));
-            locations.forEach(loc => params.append("locations", loc));
+            states.forEach(s => params.append("states", s))
+            cities.forEach(c => params.append("cities", c));
 
             fetch("/museums?" + params.toString())
                 .then((response) => response.json())
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
-                    console.log(row[0], row[1], row[2])  // row[0] = name, row[1] = address, row[2] = cossim score
+                    // console.log(row[0], row[1], row[2])  // row[0] = name, row[1] = address, row[2] = cossim score
                     tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2])
                     document.getElementById("answer-box").appendChild(tempDiv)
 

@@ -119,6 +119,8 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     
     # Add query to the texts for vectorization
     all_texts = [query_text] + review_texts
+
+    svd_texts = review_texts
     print(f"Created all_texts with {len(all_texts)} items")
     
     vectorizer = TfidfVectorizer(min_df=1)
@@ -126,7 +128,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     # print("TF-IDF matrix shape:", td_matrix.shape)
     # print("Vocabulary size:", len(vectorizer.vocabulary_))
     
-    k = min(3, min(td_matrix.shape) - 1)    
+    k = min(100, min(td_matrix.shape) - 1) 
     if k <= 0:
         print("ERROR: k <= 0, cannot perform SVD")
         query_vector = td_matrix[0:1]
@@ -168,13 +170,3 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     matching.sort(key=lambda x: x[2], reverse=True)
     return matching
 
-
-# For testing purposes
-# from data_cleaning import getDataset, filterCategory, filterLocation
-
-# query = "Children"
-# categories = ["Art Museums", "History Museums"]
-# locations = ['NY']
-# filtered_museums = set(filterCategory(categories))
-# filtered_museums &= set(filterLocation(locations))
-# SVDTopMuseums(query, filtered_museums=filtered_museums)

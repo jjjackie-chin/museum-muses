@@ -94,6 +94,7 @@
     max-height: 200px;
     overflow-y: auto;
     padding: 10px;
+    min-width: 200px;
     background: #f9f9f9;
 }
 
@@ -102,10 +103,26 @@
     margin-bottom: 5px;
 }
 
-.city-checkbox {
-    margin-left: 15px;
-    display: block;
+.state-group {
+    margin-bottom: 1em;
 }
+
+.state-label {
+    font-weight: bold;
+    margin-left: 0.5em;
+    display: inline-block;
+}
+
+.cities-container {
+    margin-left: 1.5em;
+    margin-top: 0.5em;
+}
+
+.city-checkbox {
+    display: block;
+    margin-top: 0.25em;
+}
+
 
 .notification {
     background-color: #f9f9f9;
