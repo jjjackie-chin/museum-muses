@@ -69,11 +69,13 @@
 
     <script>
 
-        function answerBoxTemplate(title, address, cossimscore) {
-            return `<div class='museum-card'>
+        function answerBoxTemplate(title, address, cossimscore, review, dimension) {
+            return `<div class='museum-card museum-card-container'>
                 <h3 class='museum-name'>${title}</h3>
                 <p class='museum-address'>${address}</p>
-                <p class='museum-cosine-similarity-score'>cosine-similarity score: ${cossimscore.toFixed(2)}</p>
+                <p class='museum-cosine-similarity-score'><strong>Cosine-Similarity Score:</strong> ${cossimscore.toFixed(2)}</p>
+                <p class='museum-review'><strong>Review:</strong> ${review}</p>
+                <p class='museum-dimension'><strong>Matched dimension:</strong> ${dimension}</p>
             </div>`
         }
 
@@ -187,7 +189,7 @@
                 .then((data) => data.forEach(row => {
                     let tempDiv = document.createElement("div")
                     // console.log(row[0], row[1], row[2])  // row[0] = name, row[1] = address, row[2] = cossim score
-                    tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2])
+                    tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4])
                     document.getElementById("answer-box").appendChild(tempDiv)
 
                 }));
