@@ -63,8 +63,8 @@
 
         </div>
         <div id="answer-box">
-
         </div>
+        <div id="no-result-box"></div>
     </div>
 
     <script>
@@ -84,62 +84,62 @@
         }
 
         fetch("/locations")
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById("location-checkboxes");
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById("location-checkboxes");
 
-        for (const state in data) {
-            const stateGroup = document.createElement("div");
-            stateGroup.className = "state-group";
+                for (const state in data) {
+                    const stateGroup = document.createElement("div");
+                    stateGroup.className = "state-group";
 
-            const stateCheckbox = document.createElement("input");
-            stateCheckbox.type = "checkbox";
-            stateCheckbox.name = "state";
-            stateCheckbox.value = state;
-            stateCheckbox.className = "state-checkbox";
-            stateCheckbox.id = `checkbox-${state}`; // unique id
+                    const stateCheckbox = document.createElement("input");
+                    stateCheckbox.type = "checkbox";
+                    stateCheckbox.name = "state";
+                    stateCheckbox.value = state;
+                    stateCheckbox.className = "state-checkbox";
+                    stateCheckbox.id = `checkbox-${state}`; // unique id
 
-            const stateLabel = document.createElement("label");
-            stateLabel.htmlFor = stateCheckbox.id;
-            stateLabel.textContent = state;
-            stateLabel.className = "state-label";
+                    const stateLabel = document.createElement("label");
+                    stateLabel.htmlFor = stateCheckbox.id;
+                    stateLabel.textContent = state;
+                    stateLabel.className = "state-label";
 
-            const citiesContainer = document.createElement("div");
-            citiesContainer.className = "cities-container";
-            citiesContainer.style.display = "none";
+                    const citiesContainer = document.createElement("div");
+                    citiesContainer.className = "cities-container";
+                    citiesContainer.style.display = "none";
 
-            // Create city checkboxes
-            data[state].forEach(city => {
-                const cityWrapper = document.createElement("div");
-                cityWrapper.className = "city-wrapper";
+                    // Create city checkboxes
+                    data[state].forEach(city => {
+                        const cityWrapper = document.createElement("div");
+                        cityWrapper.className = "city-wrapper";
 
-                const cityCheckbox = document.createElement("input");
-                cityCheckbox.type = "checkbox";
-                cityCheckbox.name = "location";
-                cityCheckbox.value = `${city}, ${state}`;
-                cityCheckbox.id = `checkbox-${state}-${city}`;
+                        const cityCheckbox = document.createElement("input");
+                        cityCheckbox.type = "checkbox";
+                        cityCheckbox.name = "location";
+                        cityCheckbox.value = `${city}, ${state}`;
+                        cityCheckbox.id = `checkbox-${state}-${city}`;
 
-                const cityLabel = document.createElement("label");
-                cityLabel.htmlFor = cityCheckbox.id;
-                cityLabel.textContent = city;
-                cityLabel.className = "city-label";
+                        const cityLabel = document.createElement("label");
+                        cityLabel.htmlFor = cityCheckbox.id;
+                        cityLabel.textContent = city;
+                        cityLabel.className = "city-label";
 
-                cityWrapper.appendChild(cityCheckbox);
-                cityWrapper.appendChild(cityLabel);
-                citiesContainer.appendChild(cityWrapper);
+                        cityWrapper.appendChild(cityCheckbox);
+                        cityWrapper.appendChild(cityLabel);
+                        citiesContainer.appendChild(cityWrapper);
+                    });
+
+                    // Toggle display of cities when state checkbox changes
+                    stateCheckbox.addEventListener("change", () => {
+                        citiesContainer.style.display = stateCheckbox.checked ? "block" : "none";
+                    });
+
+                    stateGroup.appendChild(stateCheckbox);
+                    stateGroup.appendChild(stateLabel);
+                    stateGroup.appendChild(citiesContainer);
+                    container.appendChild(stateGroup);
+                }
             });
-
-            // Toggle display of cities when state checkbox changes
-            stateCheckbox.addEventListener("change", () => {
-                citiesContainer.style.display = stateCheckbox.checked ? "block" : "none";
-            });
-
-            stateGroup.appendChild(stateCheckbox);
-            stateGroup.appendChild(stateLabel);
-            stateGroup.appendChild(citiesContainer);
-            container.appendChild(stateGroup);
-        }
-    });
 
         function getSelectedValues(name) {
             const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
@@ -186,13 +186,23 @@
 
             fetch("/museums?" + params.toString())
                 .then((response) => response.json())
-                .then((data) => data.forEach(row => {
-                    let tempDiv = document.createElement("div")
-                    // console.log(row[0], row[1], row[2])  // row[0] = name, row[1] = address, row[2] = cossim score
-                    tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4])
-                    document.getElementById("answer-box").appendChild(tempDiv)
-
-                }));
+                .then((data) => {
+                    const noResultBox = document.getElementById("no-result-box");
+                    const answerBox = document.getElementById("answer-box");
+                    if (data.length === 0) {
+                        console.log("no mus")
+                        let noDiv = document.createElement("div");
+                        noDiv.textContent = "No museums found matching your search.";
+                        noDiv.classList.add("no-results");
+                        noResultBox.appendChild(noDiv);
+                    } else {
+                        data.forEach(row => {
+                            let tempDiv = document.createElement("div");
+                            tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4]);
+                            answerBox.appendChild(tempDiv);
+                        });
+                    }
+                });
 
         }
 

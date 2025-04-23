@@ -53,6 +53,14 @@
     padding-left: 10px;
 }
 
+.no-results {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: white;
+}
+
 .episode-title {
     font-family: 'Kanit', sans-serif;
     color: white;
