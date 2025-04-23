@@ -111,7 +111,10 @@ def get_representative_review(name, dataset):
         return "No reviews available"
     
     # Choose a review that's not too short or too long
-    filtered_reviews = [r for r in reviews if 20 <= len(r) <= 150]
+    filtered_reviews = [r for r in reviews if 10 <= len(r) <= 250]
+    if not filtered_reviews or len(filtered_reviews) == 1:
+        return "No reviews available"
+    
     if filtered_reviews:
         return random.choice(filtered_reviews)
     elif reviews:
@@ -268,4 +271,15 @@ def SVDTopMuseums(input_query, filtered_museums=None):
                     matching.append((name, "Address not found", float(sim), "No review available", "Unknown dimension"))
 
     matching.sort(key=lambda x: x[2], reverse=True)
-    return matching
+    # make sure only positive cosine sim score results show up
+    matching = [t for t in matching if t[2]>0]
+
+    # make sure no duplicate results show up
+    final_matching = []
+    seen = set()
+    for tup in matching:
+        if tup[0] not in seen:
+            final_matching.append(tup)
+            seen.add(tup[0])
+
+    return final_matching
