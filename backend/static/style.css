@@ -139,3 +139,34 @@
     background-color: #EDEDED;
     font-family: 'Open Sans', sans-serif;
 }
+
+.museum-card {
+    border: 1px solid #ddd;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    background-color: #fafafa;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .museum-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  }
+  .museum-name {
+    font-size: 1.4em;
+    margin-bottom: 8px;
+    color: #2c3e50;
+  }
+  .museum-address {
+    margin: 4px 0;
+    color: #555;
+    font-size: 0.95em;
+  }
+  .museum-cosine-similarity-score,
+  .museum-review,
+  .museum-dimension {
+    margin: 4px 0;
+    color: #555;
+    font-size: 0.95em;
+  }

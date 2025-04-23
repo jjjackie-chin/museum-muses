@@ -4,6 +4,7 @@ from nltk.tokenize import TreebankWordTokenizer
 from collections import Counter
 from scipy.sparse.linalg import svds
 import numpy as np
+import random
 
 def inv_idx(msgs):
     inverted_index = {}
@@ -50,6 +51,73 @@ def composeData(dataset, filtered_museums=None):
     return museum_names, review_texts
 
 
+def interpret_svd_dimensions(vt, feature_names):
+    """Create interpretable labels for SVD dimensions based on top terms"""
+    dimension_labels = []
+    
+    for i in range(vt.shape[0]):
+        # Get indices of terms with highest absolute weights
+        top_indices = np.abs(vt[i]).argsort()[-15:][::-1]
+        top_terms = [feature_names[idx] for idx in top_indices]
+        
+        # Manually interpret based on top terms
+        dimension_theme = interpret_dimension_theme(top_terms)
+        dimension_labels.append(dimension_theme)
+    
+    return dimension_labels
+
+
+def interpret_dimension_theme(top_terms):
+    """Interpret theme based on top terms"""
+    terms_str = ", ".join(top_terms[:7])
+    
+    # Museum-specific themes based on domain knowledge
+    if any(term in top_terms for term in ["art", "painting", "sculpture", "gallery", "artist", "portrait", "artwork"]):
+        return f"Art & Visual Culture ({terms_str})"
+    elif any(term in top_terms for term in ["history", "historic", "war", "century", "historical", "civil", "ancient"]):
+        return f"Historical Significance ({terms_str})"
+    elif any(term in top_terms for term in ["science", "technology", "discovery", "scientific", "innovation", "engineering"]):
+        return f"Science & Technology ({terms_str})"
+    elif any(term in top_terms for term in ["kids", "children", "family", "interactive", "fun", "play", "educational"]):
+        return f"Family Experience ({terms_str})"
+    elif any(term in top_terms for term in ["nature", "animals", "wildlife", "garden", "natural", "outdoors", "ecosystem"]):
+        return f"Natural World ({terms_str})"
+    elif any(term in top_terms for term in ["exhibit", "collection", "gallery", "display", "artifacts", "pieces", "showcases"]):
+        return f"Exhibition Quality ({terms_str})"
+    elif any(term in top_terms for term in ["military", "war", "aviation", "naval", "army", "aircraft", "veterans"]):
+        return f"Military History ({terms_str})"
+    elif any(term in top_terms for term in ["architecture", "building", "design", "structure", "historic", "century", "beautiful"]):
+        return f"Architecture & Design ({terms_str})"
+    elif any(term in top_terms for term in ["cultural", "heritage", "tradition", "ethnic", "indigenous", "identity", "diversity"]):
+        return f"Cultural Heritage ({terms_str})"
+    elif any(term in top_terms for term in ["interactive", "hands-on", "experience", "engaging", "activities", "participatory"]):
+        return f"Interactive Experience ({terms_str})"
+    else:
+        return f"Theme: {terms_str}"
+
+
+def get_dominant_dimension(query_vec, doc_vec):
+    """Find which dimension contributed most to the similarity"""
+    # Element-wise product shows contribution of each dimension
+    contributions = query_vec * doc_vec
+    top_dim_index = np.argmax(np.abs(contributions))
+    return top_dim_index, contributions[top_dim_index]
+
+
+def get_representative_review(name, dataset):
+    """Get a representative review for a museum"""
+    reviews = dataset[dataset['MuseumName'] == name]['Reviews'].values[0]
+    if not reviews or len(reviews) == 0:
+        return "No reviews available"
+    
+    # Choose a review that's not too short or too long
+    filtered_reviews = [r for r in reviews if 20 <= len(r) <= 150]
+    if filtered_reviews:
+        return random.choice(filtered_reviews)
+    elif reviews:
+        return reviews[0][:150] + "..." if len(reviews[0]) > 150 else reviews[0]
+    else:
+        return "No reviews available"
 
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -87,21 +155,19 @@ def SimGetMuseums(input_query, filtered_museums=None):
     matching.sort(reverse=True, key=lambda x: x[2])
     return matching
 
+
 def SVDTopMuseums(input_query, filtered_museums=None):
     print("Starting SVDTopMuseums with query:", input_query)
-    # print("Filtered museums:", filtered_museums)
     
     dataset = getDataset()
-    # print("Dataset loaded, shape:", dataset.shape if hasattr(dataset, 'shape') else "unknown shape")
     
     tokenizer = TreebankWordTokenizer()
     query_tokens = tokenizer.tokenize(input_query.lower())
     query_text = " ".join(query_tokens)
-    # print("Processed query:", query_text)
     
     museum_names, review_texts = composeData(dataset)
 
-    print("museum_names  in sims.py")
+    print("museum_names in sims.py")
     
     # Check if we have enough data
     if len(review_texts) == 0:
@@ -112,18 +178,28 @@ def SVDTopMuseums(input_query, filtered_museums=None):
         
     # Add query to the texts for vectorization
     svd_texts = [query_text] + review_texts
-
-    # svd_texts = review_texts
     
     vectorizer = TfidfVectorizer(min_df=1, max_df=0.9)
     td_matrix = vectorizer.fit_transform(svd_texts)
-    # k = min(100, min(td_matrix.shape) - 1) 
     k = 30
+    
     if k <= 0:
         print("ERROR: k <= 0, cannot perform SVD")
         query_vector = td_matrix[0:1]
         docs_vectors = td_matrix[1:]
         similarities = (query_vector @ docs_vectors.T).toarray().flatten()
+        
+        matching = []
+        for i, (name, sim) in enumerate(zip(museum_names, similarities)):
+            if name not in filtered_museums:
+                continue
+            try:
+                address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
+                review = get_representative_review(name, dataset)
+                matching.append((name, address, float(sim), review, "No SVD used"))
+            except Exception as e:
+                print(f"Error getting data for museum {name}: {e}")
+                matching.append((name, "Address not found", float(sim), "No review available", "Unknown dimension"))
     else:
         # Apply SVD
         try:
@@ -132,10 +208,6 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             import numpy as np
             
             u, s, vt = svds(td_matrix, k=k)  
-
-            # print(u.shape)
-            # print(s.shape)
-            # print(vt.shape)   
 
             s_diag = np.diag(s)
             docs_transformed = np.dot(u, s_diag)            
@@ -146,26 +218,54 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             docs_vecs_norm = normalize(docs_vecs)
             query_vec_norm = query_vec / np.linalg.norm(query_vec)            
             similarities = np.dot(docs_vecs_norm, query_vec_norm)
+            
+            # Get feature names for interpretability
+            feature_names = vectorizer.get_feature_names_out()
+            
+            # Interpret SVD dimensions
+            dimension_labels = interpret_svd_dimensions(vt, feature_names)
+            
+            matching = []
+            for i, (name, sim) in enumerate(zip(museum_names, similarities)):
+                if name not in filtered_museums:
+                    continue
+                try:
+                    doc_index = i - 1  # Adjust index for docs_vecs
+                    if doc_index >= 0 and doc_index < len(docs_vecs_norm):
+                        # Find top dimension for this document-query pair
+                        top_dim_index, contribution = get_dominant_dimension(query_vec_norm, docs_vecs_norm[doc_index])
+                        dimension_name = dimension_labels[top_dim_index]
+                        
+                        # Get a representative review
+                        review = get_representative_review(name, dataset)
+                        
+                        address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
+                        matching.append((name, address, float(sim), review, dimension_name))
+                    else:
+                        address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
+                        review = get_representative_review(name, dataset)
+                        matching.append((name, address, float(sim), review, "Dimension not available"))
+                except Exception as e:
+                    print(f"Error getting data for museum {name}: {e}")
+                    matching.append((name, "Address not found", float(sim), "No review available", "Unknown dimension"))
 
         except Exception as e:
             print(f"SVD calculation failed with error: {e}")
             query_vector = td_matrix[0:1]
             docs_vectors = td_matrix[1:]
             similarities = (query_vector @ docs_vectors.T).toarray().flatten()
-    
-    matching = []
-    for i, (name, sim) in enumerate(zip(museum_names, similarities)):
-        if name not in filtered_museums:
-            continue
-        try:
-            address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
-            matching.append((name, address, float(sim)))
-        except Exception as e:
-            print(f"Error getting address for museum {name}: {e}")
-            matching.append((name, "Address not found", float(sim)))
-
-
+            
+            matching = []
+            for i, (name, sim) in enumerate(zip(museum_names, similarities)):
+                if name not in filtered_museums:
+                    continue
+                try:
+                    address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
+                    review = get_representative_review(name, dataset)
+                    matching.append((name, address, float(sim), review, "SVD calculation failed"))
+                except Exception as e:
+                    print(f"Error getting data for museum {name}: {e}")
+                    matching.append((name, "Address not found", float(sim), "No review available", "Unknown dimension"))
 
     matching.sort(key=lambda x: x[2], reverse=True)
     return matching
-

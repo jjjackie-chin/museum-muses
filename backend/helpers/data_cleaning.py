@@ -70,6 +70,11 @@ def filterCategory(user_input_cat):
   if len(user_input_cat)==0:
     return dataset['MuseumName'].tolist()
   
+  matching = []
+  for index, row in dataset.iterrows():
+    museum_categories = row['Categories']
+    if any(cat in museum_categories for cat in user_input_cat):
+      matching.append(row['MuseumName'])
   # cat_mask = pd.Series([False] * len(dataset))
   
   # for cat in user_input_cat:
@@ -77,9 +82,9 @@ def filterCategory(user_input_cat):
     # print(dataset['Categories'])
     # cat_mask = [cat in row for row in dataset['Categories']]
     # print(cat_mask)
-  cat = dataset['Categories']
-  filter = cat.isin(user_input_cat)
-  matching = dataset[filter]['MuseumName'].tolist()
+  # cat = dataset['Categories']
+  # filter = cat.isin(user_input_cat)
+  # matching = dataset[filter]['MuseumName'].tolist()
   # matching = dataset[cat_mask]['MuseumName'].tolist()
   # print("Filtering by category...")
   return matching
