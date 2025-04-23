@@ -111,7 +111,10 @@ def get_representative_review(name, dataset):
         return "No reviews available"
     
     # Choose a review that's not too short or too long
-    filtered_reviews = [r for r in reviews if 20 <= len(r) <= 150]
+    filtered_reviews = [r for r in reviews if 10 <= len(r) <= 250]
+    if not filtered_reviews or len(filtered_reviews) == 1:
+        return "No reviews available"
+    
     if filtered_reviews:
         return random.choice(filtered_reviews)
     elif reviews:
