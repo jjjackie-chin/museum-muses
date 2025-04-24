@@ -158,7 +158,8 @@ def SimGetMuseums(input_query, filtered_museums=None):
     matching.sort(reverse=True, key=lambda x: x[2])
     return matching
 
-
+random.seed(42)
+np.random.seed(42)
 def SVDTopMuseums(input_query, filtered_museums=None):
     print("Starting SVDTopMuseums with query:", input_query)
     
@@ -167,10 +168,10 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     tokenizer = TreebankWordTokenizer()
     query_tokens = tokenizer.tokenize(input_query.lower())
     query_text = " ".join(query_tokens)
-    
-    museum_names, review_texts = composeData(dataset)
 
-    print("museum_names in sims.py")
+    filtered_museums = sorted(filtered_museums) if filtered_museums else None
+    museum_names, review_texts = composeData(dataset, filtered_museums=filtered_museums)
+
     
     # Check if we have enough data
     if len(review_texts) == 0:
@@ -182,9 +183,10 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     # Add query to the texts for vectorization
     svd_texts = [query_text] + review_texts
     
-    vectorizer = TfidfVectorizer(min_df=1, max_df=0.9)
+    vectorizer = TfidfVectorizer(min_df=1, max_df=0.85)
     td_matrix = vectorizer.fit_transform(svd_texts)
-    k = 30
+    num_docs = len(review_texts)
+    k = min(30, max(2, num_docs // 2))
     
     if k <= 0:
         print("ERROR: k <= 0, cannot perform SVD")
@@ -207,11 +209,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
         # Apply SVD
         try:
             print("SVD...")
-            from scipy.sparse.linalg import svds
-            import numpy as np
-            
-            u, s, vt = svds(td_matrix, k=k)  
-
+            u, s, vt = svds(td_matrix, k=k)
             s_diag = np.diag(s)
             docs_transformed = np.dot(u, s_diag)            
             query_vec = docs_transformed[0]
@@ -221,6 +219,22 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             docs_vecs_norm = normalize(docs_vecs)
             query_vec_norm = query_vec / np.linalg.norm(query_vec)            
             similarities = np.dot(docs_vecs_norm, query_vec_norm)
+            
+            if np.all(similarities <= 0):
+                print("All similarities are negative. Falling back.")
+                k_retry = max(2, k // 2)
+                try:
+                    u, s, vt = svds(td_matrix, k=k_retry, solver='arpack')
+                    s_diag = np.diag(s)
+                    docs_transformed = np.dot(u, s_diag)            
+                    query_vec = docs_transformed[0]
+                    docs_vecs = docs_transformed[1:]
+                    docs_vecs_norm = normalize(docs_vecs)
+                    query_vec_norm = query_vec / np.linalg.norm(query_vec)
+                    similarities = np.dot(docs_vecs_norm, query_vec_norm)
+                    print(f"✅ Retry with k={k_retry} produced valid similarities")
+                except Exception as e:
+                    print(f"Retry SVD with k={k_retry} failed: {e}")
             
             # Get feature names for interpretability
             feature_names = vectorizer.get_feature_names_out()
@@ -236,7 +250,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
                     doc_index = i - 1  # Adjust index for docs_vecs
                     if doc_index >= 0 and doc_index < len(docs_vecs_norm):
                         # Find top dimension for this document-query pair
-                        top_dim_index, contribution = get_dominant_dimension(query_vec_norm, docs_vecs_norm[doc_index])
+                        top_dim_index, _ = get_dominant_dimension(query_vec_norm, docs_vecs_norm[doc_index])
                         dimension_name = dimension_labels[top_dim_index]
                         
                         # Get a representative review
@@ -272,6 +286,9 @@ def SVDTopMuseums(input_query, filtered_museums=None):
 
     matching.sort(key=lambda x: x[2], reverse=True)
     # make sure only positive cosine sim score results show up
+    for t in matching:
+        if t[2] <= 0.01:
+            print(f"Low sim: {t[0]} -> {t[2]}")
     matching = [t for t in matching if t[2]>0]
 
     # make sure no duplicate results show up
@@ -281,5 +298,4 @@ def SVDTopMuseums(input_query, filtered_museums=None):
         if tup[0] not in seen:
             final_matching.append(tup)
             seen.add(tup[0])
-
     return final_matching

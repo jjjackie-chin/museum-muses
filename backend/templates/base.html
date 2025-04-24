@@ -57,7 +57,7 @@
             <!-- user query -->
             <div class="input-box" onclick="sendFocus()">
                 <input placeholder="Enter your query" id="filter-text-val" required>
-                <button id="search-button" onclick="filterText()">Search</button>
+                <button id="search-button" onclick="filterText()" disabled>Search</button>
             </div>
 
 
@@ -86,6 +86,7 @@
         fetch("/locations")
             .then(res => res.json())
             .then(data => {
+                document.getElementById("search-button").disabled = true;
                 const container = document.getElementById("location-checkboxes");
 
                 for (const state in data) {
@@ -139,6 +140,7 @@
                     stateGroup.appendChild(citiesContainer);
                     container.appendChild(stateGroup);
                 }
+                document.getElementById("search-button").disabled = false;
             });
 
         function getSelectedValues(name) {
@@ -154,48 +156,40 @@
             const categories = getSelectedValues("category");
             // console.log(categories)
             const states = getSelectedValues("state");
+            if (states.length === 0) {
+                console.log("No states selected or available yet");
+                return;
+            }
             const cities = getSelectedValues("location");
             // console.log(states)
 
-            // if (query === "") {
-            //     answerBox.innerHTML = "<p class='error'>Please enter a query in your search.</p>";
-            //     return;
-            // }
-            // if (categories.length === 0) {
-            //     answerBox.innerHTML = "<p class='error'>Please select at least one category.</p>";
-            //     return;
-            // }
-            // if (locations.length === 0) {
-            //     answerBox.innerHTML = "<p class='error'>Please select at least one location.</p>";
-            //     return;
-            // }
-
-            // const query = document.getElementById("filter-text-val").value;
-            // if (query == "") {
-            //     document.getElementById("answer-box").innerHTML = "<p class='error'>Please enter a query in your search.</p>";
-            //     return;
-            // }
-            // const categories = getSelectedValues("category");
-            // const locations = getSelectedValues("location");
+            if (query === "" && categories.length === 0 && states.length === 0) {
+                answerBox.innerHTML = "<p class='error'>Please select at least one category, one location, and enter a search query to get recommendations.</p>";
+                return;
+            }
 
             const params = new URLSearchParams();
             params.append("query", query);
             categories.forEach(cat => params.append("categories", cat));
             states.forEach(s => params.append("states", s))
             cities.forEach(c => params.append("cities", c));
-
+            console.log(params.toString())
             fetch("/museums?" + params.toString())
                 .then((response) => response.json())
                 .then((data) => {
                     const noResultBox = document.getElementById("no-result-box");
                     const answerBox = document.getElementById("answer-box");
+                    if (noResultBox.children.length > 0){
+                            noResultBox.removeChild(noResultBox.children[0]);
+                    }
                     if (data.length === 0) {
                         console.log("no mus")
                         let noDiv = document.createElement("div");
                         noDiv.textContent = "No museums found matching your search.";
                         noDiv.classList.add("no-results");
+
                         noResultBox.appendChild(noDiv);
-                    } else {
+                    } else { 
                         data.forEach(row => {
                             let tempDiv = document.createElement("div");
                             tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4]);

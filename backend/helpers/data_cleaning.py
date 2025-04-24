@@ -75,18 +75,7 @@ def filterCategory(user_input_cat):
     museum_categories = row['Categories']
     if any(cat in museum_categories for cat in user_input_cat):
       matching.append(row['MuseumName'])
-  # cat_mask = pd.Series([False] * len(dataset))
   
-  # for cat in user_input_cat:
-    # print("cat: " + cat)
-    # print(dataset['Categories'])
-    # cat_mask = [cat in row for row in dataset['Categories']]
-    # print(cat_mask)
-  # cat = dataset['Categories']
-  # filter = cat.isin(user_input_cat)
-  # matching = dataset[filter]['MuseumName'].tolist()
-  # matching = dataset[cat_mask]['MuseumName'].tolist()
-  # print("Filtering by category...")
   return matching
 
 
@@ -96,13 +85,6 @@ def filterState(states):
   if len(states) == 0:
       return dataset['MuseumName'].tolist()
 
-  # filter_mask = pd.Series([False] * len(dataset))
-  
-  # for state in states:
-  #     location_mask = dataset['State'].str.contains(state, case=False, na=False)
-  #     filter_mask = filter_mask | location_mask
-  
-  # matching = dataset[filter_mask]['MuseumName'].tolist()
   state = dataset['State']
   filter = state.isin(states)
   matching = dataset[filter]['MuseumName'].tolist()
@@ -131,27 +113,5 @@ def filterLocation(locations):
   city_state = dataset['City-State']
   filter = city_state.isin(locations)
   matching = dataset[filter]['MuseumName'].tolist()
-  
-  # filter_mask = pd.Series([False] * len(dataset))
-  
-  # for location in locations:
-  #     location_mask = dataset['City-State'].str.contains(location, case=False, na=False)
-  #     filter_mask = filter_mask | location_mask
-  
-  # matching = dataset[filter_mask]['MuseumName'].tolist()
-  # print("Filtering by location...")
-  # print(matching)
+
   return matching
-
-# For testing purposes
-# from helpers.data_cleaning import getDataset, filterCategory, filterLocation
-
-# query = "Children"
-# categories = ["Art Museums", "History Museums"]
-# locations = []
-# filtered_museums = set(filterCategory(categories))
-# print(filtered_museums)
-# # print()
-# filtered_museums &= set(filterLocation(locations))
-# # print(filtered_museums)
-# SVDTopMuseums(query, filtered_museums=filtered_museums)
