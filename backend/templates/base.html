@@ -14,11 +14,6 @@
                 <h1>MuseumMuses</h1>
             </div>
 
-            <div class="notification">
-                <p>Please select at least one category, one location, and enter a search query to get recommendations.
-                </p>
-            </div>
-
             <!-- filters container -->
             <div class="filters-container">
                 <!-- category filter  -->
@@ -59,7 +54,12 @@
                 <input placeholder="Enter your query" id="filter-text-val" required>
                 <button id="search-button" onclick="filterText()" disabled>Search</button>
             </div>
-
+            
+            <!-- prompt to enter required text query  -->
+            <div id="notification">
+                <p>Please enter a search query to get recommendations.
+                </p>
+            </div>
 
         </div>
         <div id="answer-box">
@@ -150,6 +150,7 @@
 
         function filterText() {
             const answerBox = document.getElementById("answer-box");
+            const notification = document.getElementById("notification");
             answerBox.innerHTML = "";
 
             const query = document.getElementById("filter-text-val").value.trim();
@@ -163,9 +164,11 @@
             const cities = getSelectedValues("location");
             // console.log(states)
 
-            if (query === "" && categories.length === 0 && states.length === 0) {
-                answerBox.innerHTML = "<p class='error'>Please select at least one category, one location, and enter a search query to get recommendations.</p>";
+            if (query === "") {
+                notification.style.display = "inline-block";
                 return;
+            } else {
+                notification.style.display = "none";
             }
 
             const params = new URLSearchParams();
@@ -185,7 +188,10 @@
                     if (data.length === 0) {
                         console.log("no mus")
                         let noDiv = document.createElement("div");
-                        noDiv.textContent = "No museums found matching your search.";
+                        const categoriesSelected = categories.length > 0;
+                        const statesSelected = states.length > 0;
+                        const citiesSelected = cities.length > 0;
+                        noDiv.textContent = "Potentially no relevant museums found matching your search. Please try a different query.";
                         noDiv.classList.add("no-results");
 
                         noResultBox.appendChild(noDiv);

@@ -274,7 +274,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             
             matching = []
             for i, (name, sim) in enumerate(zip(museum_names, similarities)):
-                if name not in filtered_museums:
+                if filtered_museums is None or name not in filtered_museums:
                     continue
                 try:
                     address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
