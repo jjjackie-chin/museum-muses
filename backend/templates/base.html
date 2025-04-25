@@ -54,11 +54,16 @@
                 <input placeholder="Enter your query" id="filter-text-val" required>
                 <button id="search-button" onclick="filterText()" disabled>Search</button>
             </div>
+
+            <!-- loading text as results are being retrieved -->
+            <div id="loading">
+                <p>Loading museums...</p>
+            </div>
             
             <!-- prompt to enter required text query  -->
             <div id="notification">
-                <p>Please enter a search query to get recommendations.
-                </p>
+                <ul id="notification-list">
+                </ul>
             </div>
 
         </div>
@@ -151,59 +156,80 @@
         function filterText() {
             const answerBox = document.getElementById("answer-box");
             const notification = document.getElementById("notification");
+            const notificationList = document.getElementById("notification-list");
+            const loading = document.getElementById("loading")
+
             answerBox.innerHTML = "";
+            notification.style.display = "none";
+            notificationList.innerHTML = "";
+            let showNotification = false;
 
             const query = document.getElementById("filter-text-val").value.trim();
             const categories = getSelectedValues("category");
             // console.log(categories)
             const states = getSelectedValues("state");
-            if (states.length === 0) {
-                console.log("No states selected or available yet");
-                return;
-            }
             const cities = getSelectedValues("location");
             // console.log(states)
 
-            if (query === "") {
+            if (query === "" && states.length === 0) {
+                const li1 = document.createElement("li");
+                li1.textContent = "Please enter a search query to get recommendations.";
+                const li2 = document.createElement("li");
+                li2.textContent = "Please select at least one location.";
+                showNotification = true;
                 notification.style.display = "inline-block";
-                return;
-            } else {
-                notification.style.display = "none";
+                notificationList.appendChild(li1);
+                notificationList.appendChild(li2);
+            } else if (states.length === 0) {
+                console.log("No states selected or available yet");
+                const li = document.createElement("li");
+                li.textContent = "Please select at least one location."
+                showNotification = true;
+                notification.style.display = "inline-block"; 
+                notificationList.appendChild(li);
+            } else if (query === "") {
+                const li = document.createElement("li");
+                li.textContent = "Please enter a search query to get recommendations."
+                showNotification = true;
+                notification.style.display = "inline-block";
+                notificationList.appendChild(li);
             }
 
-            const params = new URLSearchParams();
-            params.append("query", query);
-            categories.forEach(cat => params.append("categories", cat));
-            states.forEach(s => params.append("states", s))
-            cities.forEach(c => params.append("cities", c));
-            console.log(params.toString())
-            fetch("/museums?" + params.toString())
-                .then((response) => response.json())
-                .then((data) => {
-                    const noResultBox = document.getElementById("no-result-box");
-                    const answerBox = document.getElementById("answer-box");
-                    if (noResultBox.children.length > 0){
-                            noResultBox.removeChild(noResultBox.children[0]);
-                    }
-                    if (data.length === 0) {
-                        console.log("no mus")
-                        let noDiv = document.createElement("div");
-                        const categoriesSelected = categories.length > 0;
-                        const statesSelected = states.length > 0;
-                        const citiesSelected = cities.length > 0;
-                        noDiv.textContent = "Potentially no relevant museums found matching your search. Please try a different query.";
-                        noDiv.classList.add("no-results");
+            if(!showNotification) {
+                notification.style.display = "none";
+                loading.style.display = "block";
 
-                        noResultBox.appendChild(noDiv);
-                    } else { 
-                        data.forEach(row => {
-                            let tempDiv = document.createElement("div");
-                            tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4]);
-                            answerBox.appendChild(tempDiv);
-                        });
-                    }
-                });
+                const params = new URLSearchParams();
+                params.append("query", query);
+                categories.forEach(cat => params.append("categories", cat));
+                states.forEach(s => params.append("states", s))
+                cities.forEach(c => params.append("cities", c));
+                console.log(params.toString())
+                fetch("/museums?" + params.toString())
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const noResultBox = document.getElementById("no-result-box");
+                        const answerBox = document.getElementById("answer-box");
+                        loading.style.display = "none";
+                        if (noResultBox.children.length > 0){
+                                noResultBox.removeChild(noResultBox.children[0]);
+                        }
+                        if (data.length === 0) {
+                            console.log("no mus")
+                            let noDiv = document.createElement("div");
+                            noDiv.textContent = "Potentially no relevant museums found matching your search. Please try a different query.";
+                            noDiv.classList.add("no-results");
 
+                            noResultBox.appendChild(noDiv);
+                        } else { 
+                            data.forEach(row => {
+                                let tempDiv = document.createElement("div");
+                                tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4]);
+                                answerBox.appendChild(tempDiv);
+                            });
+                        }
+                    });
+            }
         }
 
         // event listener for 'Enter' key if pressed
