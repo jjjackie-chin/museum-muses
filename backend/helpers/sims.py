@@ -170,7 +170,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     query_text = " ".join(query_tokens)
 
     filtered_museums = sorted(filtered_museums) if filtered_museums else None
-    museum_names, review_texts = composeData(dataset, filtered_museums=filtered_museums)
+    museum_names, review_texts = composeData(dataset)
 
     
     # Check if we have enough data
