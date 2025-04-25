@@ -1,32 +1,24 @@
 import math
+import pickle
 from helpers.data_cleaning import getDataset
 from nltk.tokenize import TreebankWordTokenizer
-from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse.linalg import svds
 import numpy as np
 import random
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 
-def inv_idx(msgs):
-    inverted_index = {}
-    for doc_id, msg in enumerate(msgs):
-        token_counts = {}
-        for token in msg["toks"]:
-            token_counts[token] = token_counts.get(token, 0) + 1
-        for token, count in token_counts.items():
-            if token not in inverted_index:
-                inverted_index[token] = []
-            inverted_index[token].append((doc_id, count))
-    return inverted_index
+# getting the cached reviews
+try:
+    with open("cached_review_embeddings.pkl", "rb") as f:
+        all_review_embeddings = pickle.load(f)
+except FileNotFoundError:
+    all_review_embeddings = {}
 
-
-def compute_idf(inv_idx, n_docs, min_df=10, max_df_ratio=0.95):
-    idf = {}
-    max_df = max_df_ratio * n_docs  
-    for term, postings in inv_idx.items():
-        doc_freq = len(postings)  
-        if min_df <= doc_freq <= max_df:
-            idf[term] = math.log2(n_docs / (doc_freq + 1))  
-    return idf
+# loading sbert
+sbert_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 def composeData(dataset, filtered_museums=None):
@@ -104,27 +96,20 @@ def get_dominant_dimension(query_vec, doc_vec):
     return top_dim_index, contributions[top_dim_index]
 
 
-def get_representative_review(name, dataset):
-    """Get a representative review for a museum"""
-    reviews = dataset[dataset['MuseumName'] == name]['Reviews'].values[0]
-    if not reviews or len(reviews) == 0:
-        return "No reviews available"
-    
-    # Choose a review that's not too short or too long
-    filtered_reviews = [r for r in reviews if 10 <= len(r) <= 250]
-    if not filtered_reviews or len(filtered_reviews) == 1:
-        return "No reviews available"
-    
-    if filtered_reviews:
-        return random.choice(filtered_reviews)
-    elif reviews:
-        return reviews[0][:150] + "..." if len(reviews[0]) > 150 else reviews[0]
-    else:
+def get_representative_review(query, name, dataset):
+    if name not in all_review_embeddings:
         return "No reviews available"
 
+    reviews, review_vecs = all_review_embeddings[name]
+    try:
+        query_vec = sbert_model.encode([query])[0]
+        sims = cosine_similarity([query_vec], review_vecs)[0]
+        best_idx = sims.argmax()
+        return reviews[best_idx]
+    except:
+        return reviews[0] if reviews else "No reviews available"
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
 def SimGetMuseums(input_query, filtered_museums=None):
     """
     Takes in the query from the user and returns a list of all 
@@ -200,7 +185,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
                 continue
             try:
                 address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
-                review = get_representative_review(name, dataset)
+                review = get_representative_review(input_query, name, dataset)
                 matching.append((name, address, float(sim), review, "No SVD used"))
             except Exception as e:
                 print(f"Error getting data for museum {name}: {e}")
@@ -220,21 +205,21 @@ def SVDTopMuseums(input_query, filtered_museums=None):
             query_vec_norm = query_vec / np.linalg.norm(query_vec)            
             similarities = np.dot(docs_vecs_norm, query_vec_norm)
             
-            if np.all(similarities <= 0):
-                print("All similarities are negative. Falling back.")
-                k_retry = max(2, k // 2)
-                try:
-                    u, s, vt = svds(td_matrix, k=k_retry, solver='arpack')
-                    s_diag = np.diag(s)
-                    docs_transformed = np.dot(u, s_diag)            
-                    query_vec = docs_transformed[0]
-                    docs_vecs = docs_transformed[1:]
-                    docs_vecs_norm = normalize(docs_vecs)
-                    query_vec_norm = query_vec / np.linalg.norm(query_vec)
-                    similarities = np.dot(docs_vecs_norm, query_vec_norm)
-                    print(f"✅ Retry with k={k_retry} produced valid similarities")
-                except Exception as e:
-                    print(f"Retry SVD with k={k_retry} failed: {e}")
+            # if np.all(similarities <= 0):
+            #     print("All similarities are negative. Falling back.")
+            #     k_retry = max(2, k // 2)
+            #     try:
+            #         u, s, vt = svds(td_matrix, k=k_retry, solver='arpack')
+            #         s_diag = np.diag(s)
+            #         docs_transformed = np.dot(u, s_diag)            
+            #         query_vec = docs_transformed[0]
+            #         docs_vecs = docs_transformed[1:]
+            #         docs_vecs_norm = normalize(docs_vecs)
+            #         query_vec_norm = query_vec / np.linalg.norm(query_vec)
+            #         similarities = np.dot(docs_vecs_norm, query_vec_norm)
+            #         print(f"✅ Retry with k={k_retry} produced valid similarities")
+            #     except Exception as e:
+            #         print(f"Retry SVD with k={k_retry} failed: {e}")
             
             # Get feature names for interpretability
             feature_names = vectorizer.get_feature_names_out()
@@ -254,13 +239,13 @@ def SVDTopMuseums(input_query, filtered_museums=None):
                         dimension_name = dimension_labels[top_dim_index]
                         
                         # Get a representative review
-                        review = get_representative_review(name, dataset)
+                        review = get_representative_review(input_query,name, dataset)
                         
                         address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
                         matching.append((name, address, float(sim), review, dimension_name))
                     else:
                         address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
-                        review = get_representative_review(name, dataset)
+                        review = get_representative_review(input_query, name, dataset)
                         matching.append((name, address, float(sim), review, "Dimension not available"))
                 except Exception as e:
                     print(f"Error getting data for museum {name}: {e}")
@@ -278,7 +263,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
                     continue
                 try:
                     address = dataset[dataset['MuseumName'] == name]['Address'].values[0]
-                    review = get_representative_review(name, dataset)
+                    review = get_representative_review(input_query,name, dataset)
                     matching.append((name, address, float(sim), review, "SVD calculation failed"))
                 except Exception as e:
                     print(f"Error getting data for museum {name}: {e}")
