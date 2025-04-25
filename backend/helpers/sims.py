@@ -183,7 +183,7 @@ def SVDTopMuseums(input_query, filtered_museums=None):
     # Add query to the texts for vectorization
     svd_texts = [query_text] + review_texts
     
-    vectorizer = TfidfVectorizer(min_df=1, max_df=0.85)
+    vectorizer = TfidfVectorizer(min_df=1, max_df=0.9)
     td_matrix = vectorizer.fit_transform(svd_texts)
     num_docs = len(review_texts)
     k = min(30, max(2, num_docs // 2))
@@ -286,10 +286,13 @@ def SVDTopMuseums(input_query, filtered_museums=None):
 
     matching.sort(key=lambda x: x[2], reverse=True)
     # make sure only positive cosine sim score results show up
-    for t in matching:
+    for i in range(len(matching)):
+        t = matching[i]
         if t[2] <= 0.01:
             print(f"Low sim: {t[0]} -> {t[2]}")
-    matching = [t for t in matching if t[2]>0]
+            if t[2] > 0:
+                matching[i] = (t[0],t[1],0.01,t[3],t[4])
+    matching = [t for t in matching if t[2]>=0.01]
 
     # make sure no duplicate results show up
     final_matching = []

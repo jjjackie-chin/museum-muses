@@ -59,7 +59,7 @@
             <div id="loading">
                 <p>Loading museums...</p>
             </div>
-            
+
             <!-- prompt to enter required text query  -->
             <div id="notification">
                 <ul id="notification-list">
@@ -185,7 +185,7 @@
                 const li = document.createElement("li");
                 li.textContent = "Please select at least one location."
                 showNotification = true;
-                notification.style.display = "inline-block"; 
+                notification.style.display = "inline-block";
                 notificationList.appendChild(li);
             } else if (query === "") {
                 const li = document.createElement("li");
@@ -195,7 +195,7 @@
                 notificationList.appendChild(li);
             }
 
-            if(!showNotification) {
+            if (!showNotification) {
                 notification.style.display = "none";
                 loading.style.display = "block";
 
@@ -211,17 +211,17 @@
                         const noResultBox = document.getElementById("no-result-box");
                         const answerBox = document.getElementById("answer-box");
                         loading.style.display = "none";
-                        if (noResultBox.children.length > 0){
-                                noResultBox.removeChild(noResultBox.children[0]);
+                        if (noResultBox.children.length > 0) {
+                            noResultBox.removeChild(noResultBox.children[0]);
                         }
                         if (data.length === 0) {
                             console.log("no mus")
                             let noDiv = document.createElement("div");
-                            noDiv.textContent = "Potentially no relevant museums found matching your search. Please try a different query.";
+                            noDiv.textContent = "Potentially no relevant museums found matching your search. Please try a different query and/or checkbox selection.";
                             noDiv.classList.add("no-results");
 
                             noResultBox.appendChild(noDiv);
-                        } else { 
+                        } else {
                             data.forEach(row => {
                                 let tempDiv = document.createElement("div");
                                 tempDiv.innerHTML = answerBoxTemplate(row[0], row[1], row[2], row[3], row[4]);
@@ -232,12 +232,12 @@
             }
         }
 
-        // event listener for 'Enter' key if pressed
-        document.getElementById("filter-text-val").addEventListener("keyup", function (e) {
-            if (e.key === "Enter") {
-                filterText();
-            }
-        });
+        // // event listener for 'Enter' key if pressed
+        // document.getElementById("filter-text-val").addEventListener("keyup", function (e) {
+        //     if (e.key === "Enter") {
+        //         filterText();
+        //     }
+        // });
 
     </script>
 </body>
